@@ -12,6 +12,62 @@ import (
 func main() {
 	fmt.Printf("day1\n answer1: %d\n answer2: %d", day1Task1(), day1Task2())
 	fmt.Printf("\nday2\n answer1: %d\n answer2: %d", day2Task1(), day2Task2())
+	fmt.Printf("\nday3\n answer1: %d\n answer2: %d", day3Task1(), day3Task2())
+}
+
+func day3Task2() int {
+	input := readInput("assets/input3.txt")
+	prioritySum := 0
+	chars := []rune{}
+	for g, line := range strings.Split(input, "\n") {
+		if g%3 == 0 {
+			chars = []rune(line)
+			continue
+		}
+
+		matchChars := []rune{}
+		for _, ch := range chars {
+			if strings.ContainsRune(line, ch) && !strings.ContainsRune(string(matchChars), ch) {
+				matchChars = append(matchChars, ch)
+			}
+		}
+		chars = matchChars
+
+		if len(chars) == 1 {
+			prioritySum += day3CalcPriority(chars[0])
+		}
+	}
+
+	return prioritySum
+}
+
+func day3Task1() int {
+	input := readInput("assets/input3.txt")
+	prioritySum := 0
+	for _, line := range strings.Split(input, "\n") {
+		compLen := len(line) / 2
+	BREAK:
+		for i := 0; i < compLen; i++ {
+			for j := compLen; j < len(line); j++ {
+				if line[i] == line[j] {
+					prioritySum += day3CalcPriority(rune(line[i]))
+					break BREAK
+				}
+			}
+
+		}
+
+	}
+
+	return prioritySum
+}
+
+func day3CalcPriority(item rune) int {
+	if item >= 97 { // a - 97, b - 98, ...
+		return int(item) - 96
+	} else { // A - 65, B - 66, ...
+		return int(item) - 38
+	}
 }
 
 func day2Task2() int {
