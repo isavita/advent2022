@@ -13,6 +13,55 @@ func main() {
 	fmt.Printf("day1\n answer1: %d\n answer2: %d", day1Task1(), day1Task2())
 	fmt.Printf("\nday2\n answer1: %d\n answer2: %d", day2Task1(), day2Task2())
 	fmt.Printf("\nday3\n answer1: %d\n answer2: %d", day3Task1(), day3Task2())
+	fmt.Printf("\nday4\n answer1: %d\n answer2: %d", day4Task1(), day4Task2())
+}
+
+func day4Task2() int {
+	input := readInput("assets/input4.txt")
+	containCount := 0
+	for _, line := range strings.Split(input, "\n") {
+		sects := strings.Split(line, ",")
+		r1 := day4NewRange(sects[0])
+		r2 := day4NewRange(sects[1])
+		if day4ContainsOverlap(r1, r2) || day4ContainsOverlap(r2, r1) {
+			containCount++
+		}
+	}
+
+	return containCount
+}
+
+func day4Task1() int {
+	input := readInput("assets/input4.txt")
+	containCount := 0
+	for _, line := range strings.Split(input, "\n") {
+		sects := strings.Split(line, ",")
+		r1 := day4NewRange(sects[0])
+		r2 := day4NewRange(sects[1])
+		if day4ContainsFull(r1, r2) || day4ContainsFull(r2, r1) {
+			containCount++
+		}
+	}
+
+	return containCount
+}
+
+func day4NewRange(section string) *Range {
+	rangeStr := strings.Split(section, "-")
+	if min, err := strconv.Atoi(rangeStr[0]); err == nil {
+		if max, err := strconv.Atoi(rangeStr[1]); err == nil {
+			return &Range{min, max}
+		}
+	}
+	return nil
+}
+
+func day4ContainsFull(r1 *Range, r2 *Range) bool {
+	return r1.Min <= r2.Min && r2.Max <= r1.Max
+}
+
+func day4ContainsOverlap(r1 *Range, r2 *Range) bool {
+	return r1.Min <= r2.Min && r2.Min <= r1.Max || r1.Min <= r2.Max && r2.Max <= r1.Max
 }
 
 func day3Task2() int {
@@ -214,6 +263,13 @@ func day1Task1() int64 {
 	return max
 }
 
+// Useful structs
+type Range struct {
+	Min int
+	Max int
+}
+
+// Read input file
 func readInput(filepath string) string {
 	file, err := os.ReadFile(filepath)
 	if err != nil {
