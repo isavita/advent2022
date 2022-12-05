@@ -14,6 +14,126 @@ func main() {
 	fmt.Printf("\nday2\n answer1: %d\n answer2: %d", day2Task1(), day2Task2())
 	fmt.Printf("\nday3\n answer1: %d\n answer2: %d", day3Task1(), day3Task2())
 	fmt.Printf("\nday4\n answer1: %d\n answer2: %d", day4Task1(), day4Task2())
+	fmt.Printf("\nday5\n answer1: %s\n answer2: %s", day5Task1(), day5Task2())
+}
+
+func day5Task2() string {
+	input := readInputWithSpace("assets/input5.txt")
+	inputs := strings.Split(input, "\n\n")
+	stacks := map[int][]string{}
+	lines := strings.Split(inputs[0], "\n")
+	for i := len(lines) - 2; i >= 0; i-- {
+		if !strings.HasPrefix(lines[i], " 1") {
+			lines[i] = strings.ReplaceAll(lines[i], "    ", "[]")
+			lines[i] = strings.TrimSpace(lines[i])
+			count := 0
+			for j, stack := range strings.Split(lines[i], " ") {
+				if _, ok := stacks[j+1]; !ok {
+					stacks[j+1] = make([]string, 0)
+				}
+				if count > 0 {
+					stack = strings.ReplaceAll(stack, "[]", "")
+					stack = strings.TrimSpace(stack)
+					stacks[j+1+count] = append(stacks[j+1+count], stack)
+				} else {
+					count = strings.Count(stack, "[]")
+					stack = strings.ReplaceAll(stack, "[]", "")
+					stack = strings.TrimSpace(stack)
+					stacks[j+1] = append(stacks[j+1], stack)
+				}
+			}
+		}
+	}
+
+	inputs[1] = strings.TrimSpace(inputs[1])
+	for _, line := range strings.Split(inputs[1], "\n") {
+		count, from, to := day5MoveInfo(line)
+		if items, ok := stacks[from]; ok {
+			if count > 0 && len(items) > 0 {
+				stacks[to] = append(stacks[to], items[len(items)-count:]...)
+				items = items[:len(items)-count]
+			}
+			stacks[from] = items
+		}
+	}
+
+	var code string
+	for i := 1; i <= len(stacks); i++ {
+		ch := stacks[i][len(stacks[i])-1]
+		ch = strings.TrimPrefix(ch, "[")
+		code += strings.TrimSuffix(ch, "]")
+	}
+
+	return code
+}
+
+func day5Task1() string {
+	input := readInputWithSpace("assets/input5.txt")
+	inputs := strings.Split(input, "\n\n")
+	stacks := map[int][]string{}
+	lines := strings.Split(inputs[0], "\n")
+	for i := len(lines) - 2; i >= 0; i-- {
+		if !strings.HasPrefix(lines[i], " 1") {
+			lines[i] = strings.ReplaceAll(lines[i], "    ", "[]")
+			lines[i] = strings.TrimSpace(lines[i])
+			count := 0
+			for j, stack := range strings.Split(lines[i], " ") {
+				if _, ok := stacks[j+1]; !ok {
+					stacks[j+1] = make([]string, 0)
+				}
+				if count > 0 {
+					stack = strings.ReplaceAll(stack, "[]", "")
+					stack = strings.TrimSpace(stack)
+					stacks[j+1+count] = append(stacks[j+1+count], stack)
+				} else {
+					count = strings.Count(stack, "[]")
+					stack = strings.ReplaceAll(stack, "[]", "")
+					stack = strings.TrimSpace(stack)
+					stacks[j+1] = append(stacks[j+1], stack)
+				}
+			}
+		}
+	}
+
+	inputs[1] = strings.TrimSpace(inputs[1])
+	for _, line := range strings.Split(inputs[1], "\n") {
+		count, from, to := day5MoveInfo(line)
+		if items, ok := stacks[from]; ok {
+			for count > 0 && len(items) > 0 {
+				count--
+				stacks[to] = append(stacks[to], items[len(items)-1])
+				items = items[:len(items)-1]
+			}
+			stacks[from] = items
+		}
+	}
+
+	var code string
+	for i := 1; i <= len(stacks); i++ {
+		ch := stacks[i][len(stacks[i])-1]
+		ch = strings.TrimPrefix(ch, "[")
+		code += strings.TrimSuffix(ch, "]")
+	}
+
+	return code
+}
+
+func day5MoveInfo(line string) (count int, from int, to int) {
+	var err error
+	lin := strings.TrimLeft(line, "move ")
+
+	inst := strings.Split(lin, " from ")
+	if count, err = strconv.Atoi(inst[0]); err != nil {
+		log.Panic(err)
+	}
+	move := strings.Split(inst[1], " to ")
+	if from, err = strconv.Atoi(move[0]); err != nil {
+		log.Panic(err)
+	}
+	if to, err = strconv.Atoi(move[1]); err != nil {
+		log.Panic(err)
+	}
+	return
 }
 
 func day4Task2() int {
@@ -276,4 +396,12 @@ func readInput(filepath string) string {
 		log.Fatal(err)
 	}
 	return strings.TrimSpace(bytes.NewBuffer(file).String())
+}
+
+func readInputWithSpace(filepath string) string {
+	file, err := os.ReadFile(filepath)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return bytes.NewBuffer(file).String()
 }
