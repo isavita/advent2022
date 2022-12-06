@@ -15,6 +15,36 @@ func main() {
 	fmt.Printf("\nday3\n answer1: %d\n answer2: %d", day3Task1(), day3Task2())
 	fmt.Printf("\nday4\n answer1: %d\n answer2: %d", day4Task1(), day4Task2())
 	fmt.Printf("\nday5\n answer1: %s\n answer2: %s", day5Task1(), day5Task2())
+	fmt.Printf("\nday6\n answer1: %d\n answer2: %d", day6Task1(), day6Task2())
+}
+
+func day6Task2() int {
+	input := readInput("assets/input6.txt")
+	return day6FindPosNUniqChars(input, 14)
+}
+
+func day6Task1() int {
+	input := readInput("assets/input6.txt")
+	return day6FindPosNUniqChars(input, 4)
+}
+
+func day6FindPosNUniqChars(input string, n int) int {
+	seenChars := make(map[rune]bool, 0)
+	count := 0
+	for i := 0; i < len(input); i++ {
+		if !seenChars[rune(input[i])] {
+			seenChars[rune(input[i])] = true
+			count++
+			if count == n {
+				return i + 1
+			}
+		} else {
+			i -= count
+			seenChars = map[rune]bool{}
+			count = 0
+		}
+	}
+	return -1
 }
 
 func day5Task2() string {
