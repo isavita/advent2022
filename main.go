@@ -4,7 +4,9 @@ import (
 	"bytes"
 	"fmt"
 	"log"
+	"math"
 	"os"
+	"sort"
 	"strconv"
 	"strings"
 )
@@ -16,6 +18,116 @@ func main() {
 	fmt.Printf("\nday4\n answer1: %d\n answer2: %d", day4Task1(), day4Task2())
 	fmt.Printf("\nday5\n answer1: %s\n answer2: %s", day5Task1(), day5Task2())
 	fmt.Printf("\nday6\n answer1: %d\n answer2: %d", day6Task1(), day6Task2())
+	fmt.Printf("\nday7\n answer1: %d\n answer2: %d", day7Task1(), day7Task2())
+}
+func day7Task2() int {
+	input := readInput("assets/input7.txt")
+	dirs := day7GetDirsInfo(input)
+
+	free := 70000000 - dirs[len(dirs)-1].Size
+	required := 30000000 - free
+	minSize := math.MaxInt
+	for _, dir := range dirs {
+		if dir.Size >= required && dir.Size < minSize {
+			minSize = dir.Size
+		}
+	}
+
+	return minSize
+}
+
+func day7Task1() int {
+	input := readInput("assets/input7.txt")
+	dirs := day7GetDirsInfo(input)
+
+	sum := 0
+	for _, dir := range dirs {
+		if dir.Size <= 100000 {
+			sum += dir.Size
+		}
+	}
+
+	return sum
+}
+
+type Dir struct {
+	Path string
+	Size int
+}
+
+func day7GetDirsInfo(input string) []Dir {
+	currDir := ""
+	dirSizes := map[string]int{}
+	for _, line := range strings.Split(input, "\n") {
+		line = strings.TrimSpace(line)
+		if strings.HasPrefix(line, "$ cd") {
+			if line == "$ cd /" {
+				currDir = "/"
+			} else if line == "$ cd .." {
+				currDir = currDir[:strings.LastIndex(currDir, "/")]
+			} else {
+				if currDir != "/" {
+					currDir += "/" + strings.TrimPrefix(line, "$ cd ")
+				} else {
+					currDir += strings.TrimPrefix(line, "$ cd ")
+				}
+			}
+		} else if line == "$ ls" {
+			continue
+		} else if strings.HasPrefix(line, "dir ") {
+			suffix := "/" + strings.TrimPrefix(line, "dir ")
+			if currDir != "/" {
+				dirSizes[currDir+suffix] += 0
+			} else {
+				dirSizes[suffix] += 0
+			}
+		} else {
+			items := strings.Fields(line)
+			if size, err := strconv.Atoi(items[0]); err == nil {
+				dirSizes[currDir] += size
+			}
+		}
+	}
+
+	dirsSorted := make([]Dir, len(dirSizes))
+
+	i := 0
+	for k := range dirSizes {
+		dirsSorted[i].Path = k
+		dirsSorted[i].Size = dirSizes[k]
+		i++
+	}
+
+	sort.Slice(dirsSorted, func(i, j int) bool {
+		iCount := strings.Count(dirsSorted[i].Path, "/")
+		jCount := strings.Count(dirsSorted[j].Path, "/")
+		if iCount == jCount {
+			return len(dirsSorted[i].Path) > len(dirsSorted[j].Path)
+		}
+		return iCount > jCount
+	})
+
+	isDirect := func(s1 string, s2 string) bool {
+		if !strings.HasPrefix(s1, s2) {
+			return false
+		}
+
+		dir := strings.Replace(s1, s2, "", 1)
+		return dir == "" || ((strings.HasPrefix(dir, "/") && strings.Count(dir, "/") == 1) || strings.Count(dir, "/") == 0)
+	}
+
+	for i := 0; i < len(dirsSorted)-1; i++ {
+		for j := i + 1; j < len(dirsSorted); j++ {
+			if strings.Count(dirsSorted[i].Path, "/")-strings.Count(dirsSorted[j].Path, "/") > 1 {
+				break
+			}
+			if isDirect(dirsSorted[i].Path, dirsSorted[j].Path) {
+				dirsSorted[j].Size += dirsSorted[i].Size
+			}
+		}
+	}
+
+	return dirsSorted
 }
 
 func day6Task2() int {
