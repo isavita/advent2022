@@ -24,7 +24,16 @@ func day7Task2() int {
 	input := readInput("assets/input7.txt")
 	dirs := day7GetDirsInfo(input)
 
-	free := 70000000 - dirs[len(dirs)-1].Size
+	var rootIndex int
+	for i, dir := range dirs {
+		if dir.Path == "/" {
+			rootIndex = i
+			break
+		}
+
+	}
+
+	free := 70000000 - dirs[rootIndex].Size
 	required := 30000000 - free
 	minSize := math.MaxInt
 	for _, dir := range dirs {
