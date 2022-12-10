@@ -19,7 +19,140 @@ func main() {
 	fmt.Printf("\nday5\n answer1: %s\n answer2: %s", day5Task1(), day5Task2())
 	fmt.Printf("\nday6\n answer1: %d\n answer2: %d", day6Task1(), day6Task2())
 	fmt.Printf("\nday7\n answer1: %d\n answer2: %d", day7Task1(), day7Task2())
+	fmt.Printf("\nday8\n answer1: %d\n answer2: %d", day8Task1(), day8Task2())
 }
+
+func day8Task2() int {
+	input := readInput("assets/input8.txt")
+	trees := day8PrepTrees(input)
+
+	max := math.MinInt
+	for i, row := range trees {
+		for j := range row {
+			score := treeScore(&trees, i, j)
+			if max < score {
+				max = score
+			}
+		}
+	}
+
+	return max
+}
+
+func treeScore(trees *[][]int, row, col int) int {
+	rowLen := len(*trees)
+	colLen := len((*trees)[0])
+	scores := [4]int{}
+
+	for i := row - 1; i >= 0; i-- {
+		scores[0]++
+		if (*trees)[row][col] <= (*trees)[i][col] {
+			break
+		}
+	}
+
+	for i := row + 1; i < rowLen; i++ {
+		scores[1]++
+		if (*trees)[row][col] <= (*trees)[i][col] {
+			break
+		}
+	}
+
+	for i := col + 1; i < colLen; i++ {
+		scores[2]++
+		if (*trees)[row][col] <= (*trees)[row][i] {
+			break
+		}
+	}
+
+	for i := col - 1; i >= 0; i-- {
+		scores[3]++
+		if (*trees)[row][col] <= (*trees)[row][i] {
+			break
+		}
+	}
+
+	score := 1
+	for _, val := range scores {
+		score *= val
+	}
+
+	return score
+}
+
+func day8Task1() int {
+	input := readInput("assets/input8.txt")
+	trees := day8PrepTrees(input)
+	rowLimit := len(trees) - 1
+	colLimit := len(trees[0]) - 1
+
+	count := 0
+	for i := 1; i < rowLimit; i++ {
+		for j := 1; j < colLimit; j++ {
+			if day8IsVisible(&trees, i, j) {
+				count++
+			}
+		}
+	}
+
+	frameTrees := 2*rowLimit + 2*colLimit
+	return frameTrees + count
+}
+
+func day8PrepTrees(input string) [][]int {
+	rows := strings.Split(input, "\n")
+	trees := make([][]int, len(rows))
+	for i, row := range rows {
+		for _, col := range row {
+			if n, err := strconv.Atoi(string(col)); err == nil {
+				trees[i] = append(trees[i], n)
+			}
+		}
+
+	}
+	return trees
+}
+func day8IsVisible(rows *[][]int, row, col int) bool {
+	rowLen := len(*rows)
+	colLen := len((*rows)[0])
+
+	i := row - 1
+	for ; i >= 0; i-- {
+		if (*rows)[row][col] <= (*rows)[i][col] {
+			break
+		}
+	}
+	if i == -1 {
+		return true
+	}
+
+	for i = row + 1; i < rowLen; i++ {
+		if (*rows)[row][col] <= (*rows)[i][col] {
+			break
+		}
+	}
+	if i == rowLen {
+		return true
+	}
+
+	for i = col + 1; i < colLen; i++ {
+		if (*rows)[row][col] <= (*rows)[row][i] {
+			break
+		}
+	}
+	if i == colLen {
+		return true
+	}
+
+	for i = col - 1; i >= 0; i-- {
+		if (*rows)[row][col] <= (*rows)[row][i] {
+			break
+		}
+	}
+
+	return i == -1
+}
+
 func day7Task2() int {
 	input := readInput("assets/input7.txt")
 	dirs := day7GetDirsInfo(input)
