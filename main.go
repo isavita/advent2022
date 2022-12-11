@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"container/list"
 	"fmt"
 	"log"
 	"math"
@@ -20,6 +21,207 @@ func main() {
 	fmt.Printf("\nday6\n answer1: %d\n answer2: %d", day6Task1(), day6Task2())
 	fmt.Printf("\nday7\n answer1: %d\n answer2: %d", day7Task1(), day7Task2())
 	fmt.Printf("\nday8\n answer1: %d\n answer2: %d", day8Task1(), day8Task2())
+	fmt.Printf("\nday9\n answer1: %d\n answer2: %d", day9Task1(), day9Task2())
+}
+
+func day9Task2() int {
+	input := readInput("assets/input9.txt")
+
+	positions := make(map[Position]int)
+	snake := list.New()
+	snake.PushBack(Position{x: 5, y: 5, segmentType: 1})
+	snake.PushBack(Position{x: 5, y: 5, segmentType: 2})
+	snake.PushBack(Position{x: 5, y: 5, segmentType: 3})
+	snake.PushBack(Position{x: 5, y: 5, segmentType: 4})
+	snake.PushBack(Position{x: 5, y: 5, segmentType: 5})
+	snake.PushBack(Position{x: 5, y: 5, segmentType: 6})
+	snake.PushBack(Position{x: 5, y: 5, segmentType: 7})
+	snake.PushBack(Position{x: 5, y: 5, segmentType: 8})
+	snake.PushBack(Position{x: 5, y: 5, segmentType: 9})
+	snake.PushFront(Position{x: 5, y: 5, segmentType: Head})
+	positions[Position{x: 5, y: 5, segmentType: 9}] = 1
+
+	for _, line := range strings.Split(input, "\n") {
+		direction := day9GetDirection(line)
+		for ; direction.steps > 0; direction.steps -= 1 {
+			headSegment := snake.Front()
+			snake.Remove(headSegment)
+			headPos := headSegment.Value.(Position)
+			newX := headPos.x + direction.x
+			newY := headPos.y + direction.y
+			newTail := day9UpdateTail(newX, newY, snake, &positions)
+			snake = list.New()
+			snake.PushFrontList(&newTail)
+			snake.PushFront(Position{x: newX, y: newY, segmentType: Head})
+		}
+	}
+
+	return len(positions)
+}
+
+func day9UpdateTail(newX, newY int, snake *list.List, positions *map[Position]int) list.List {
+	newTail := list.New()
+	for item := snake.Front(); item != nil; item = item.Next() {
+		tailPos := Position{item.Value.(Position).x, item.Value.(Position).y, item.Value.(Position).segmentType}
+		if day9IsValidPosition(newX, newY, &tailPos) {
+			newX, newY = tailPos.x, tailPos.y
+			newTail.PushBack(tailPos)
+			if tailPos.segmentType == 9 {
+				(*positions)[Position{x: tailPos.x, y: tailPos.y, segmentType: tailPos.segmentType}] += 1
+			}
+		} else {
+			deltX, deltY := day9CalcTailUpdate(newX, newY, &tailPos)
+			newXTail := tailPos.x + deltX
+			newYTail := tailPos.y + deltY
+			newX, newY = newXTail, newYTail
+			newTail.PushBack(Position{x: newXTail, y: newYTail, segmentType: tailPos.segmentType})
+			if tailPos.segmentType == 9 {
+				(*positions)[Position{x: newXTail, y: newYTail, segmentType: tailPos.segmentType}] += 1
+			}
+		}
+	}
+	return *newTail
+}
+
+func day9Task1() int {
+	input := readInput("assets/input9.txt")
+
+	positions := make(map[Position]int)
+	snake := list.New()
+	snake.PushFront(Position{x: 5, y: 5, segmentType: Tail})
+	snake.PushFront(Position{x: 5, y: 5, segmentType: Head})
+	positions[Position{x: 5, y: 5, segmentType: Tail}] = 1
+
+	for _, line := range strings.Split(input, "\n") {
+		direction := day9GetDirection(line)
+		for ; direction.steps > 0; direction.steps -= 1 {
+			headSegment := snake.Front()
+			snake.Remove(headSegment)
+			headPos := headSegment.Value.(Position)
+			newX := headPos.x + direction.x
+			newY := headPos.y + direction.y
+			snake.PushFront(Position{x: newX, y: newY, segmentType: Head})
+			tailSegment := snake.Back()
+			snake.Remove(tailSegment)
+			tailPos := tailSegment.Value.(Position)
+			if day9IsValidPosition(newX, newY, &tailPos) {
+				snake.PushBack(tailPos)
+				positions[Position{x: tailPos.x, y: tailPos.y, segmentType: Tail}] += 1
+			} else {
+				deltX, deltY := day9CalcTailUpdate(newX, newY, &tailPos)
+				newXTail := tailPos.x + deltX
+				newYTail := tailPos.y + deltY
+				snake.PushBack(Position{x: newXTail, y: newYTail, segmentType: Tail})
+				positions[Position{x: newXTail, y: newYTail, segmentType: Tail}] += 1
+			}
+		}
+	}
+
+	return len(positions)
+}
+
+type Position struct {
+	x           int
+	y           int
+	segmentType int // Head or Tail
+}
+
+const (
+	Head = iota
+	Tail
+)
+
+type Direction struct {
+	x     int
+	y     int
+	steps int
+}
+
+func day9CalcTailUpdate(xHead, yHead int, tailPos *Position) (int, int) {
+	diffX, diffY := xHead-tailPos.x, yHead-tailPos.y
+
+	switch {
+	case 2 == diffX && 1 == diffY || 1 == diffX && 2 == diffY || 2 == diffX && 2 == diffY:
+		return 1, 1
+	case -2 == diffX && -1 == diffY || -1 == diffX && -2 == diffY || -2 == diffX && -2 == diffY:
+		return -1, -1
+	case 2 == diffX && 0 == diffY:
+		return 1, 0
+	case 0 == diffX && 2 == diffY:
+		return 0, 1
+	case -2 == diffX && 0 == diffY:
+		return -1, 0
+	case 0 == diffX && -2 == diffY:
+		return 0, -1
+	case 2 == diffX && -1 == diffY || 1 == diffX && -2 == diffY || 2 == diffX && -2 == diffY:
+		return 1, -1
+	case -2 == diffX && 1 == diffY || -1 == diffX && 2 == diffY || -2 == diffX && 2 == diffY:
+		return -1, 1
+	default:
+		return 0, 0
+	}
+}
+
+func day9PrintBoard(snake *list.List, positions *map[Position]int) {
+	// Create an empty board
+	board := [15][15]string{}
+
+	// Set the head and tail positions on the board
+	head := snake.Front().Value.(Position)
+	tail := snake.Back().Value.(Position)
+	board[head.x][head.y] = "H"
+	board[tail.x][tail.y] = "T"
+
+	// Print the board to the console
+	for i, row := range board {
+		for j, col := range row {
+			// If the position is empty, print a dot
+			if _, ok := (*positions)[Position{j + 1, i + 1, Tail}]; ok {
+				fmt.Print("#")
+			} else if col == "" {
+				fmt.Print(".")
+			} else {
+				fmt.Print(col)
+			}
+		}
+		fmt.Println()
+	}
+
+}
+
+func day9IsValidPosition(x, y int, tail *Position) bool {
+	maxDistance := 1
+	if abs(x-tail.x) > maxDistance || abs(y-tail.y) > maxDistance {
+		return false
+	}
+
+	return true
+}
+
+func abs(n int) int {
+	return int(math.Abs(float64(n)))
+}
+
+func day9GetDirection(line string) Direction {
+	parts := strings.Split(line, " ")
+	direction := parts[0]
+	distance, err := strconv.Atoi(parts[1])
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	switch direction {
+	case "U":
+		return Direction{x: 0, y: -1, steps: distance}
+	case "D":
+		return Direction{x: 0, y: 1, steps: distance}
+	case "L":
+		return Direction{x: -1, y: 0, steps: distance}
+	case "R":
+		return Direction{x: 1, y: 0, steps: distance}
+	default:
+		return Direction{x: 0, y: 0, steps: 0}
+	}
 }
 
 func day8Task2() int {
