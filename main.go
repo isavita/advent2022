@@ -22,6 +22,75 @@ func main() {
 	fmt.Printf("\nday7\n answer1: %d\n answer2: %d", day7Task1(), day7Task2())
 	fmt.Printf("\nday8\n answer1: %d\n answer2: %d", day8Task1(), day8Task2())
 	fmt.Printf("\nday9\n answer1: %d\n answer2: %d", day9Task1(), day9Task2())
+	fmt.Printf("\nday10\n answer1: %d\n answer2: %s%s", day10Task1(), "RBPARAGF", day10Task2())
+}
+
+func day10Task2() string {
+	input := readInput("assets/input10.txt")
+	regX, cycle := 1, 0
+	var sb strings.Builder
+	for _, ins := range strings.Split(input, "\n") {
+		day10DrawSpriteAndLine(cycle, regX, &sb)
+		cycle++
+		if ins != "noop" {
+			parts := strings.Split(ins, " ")
+			day10DrawSpriteAndLine(cycle, regX, &sb)
+			cycle++
+			if n, err := strconv.Atoi(parts[1]); err == nil {
+				regX += n
+			}
+		}
+	}
+
+	return sb.String()
+}
+
+func day10DrawSpriteAndLine(cycle, regX int, sb *strings.Builder) {
+	if cycle%40 == 0 {
+		sb.WriteString("\n")
+	}
+	if cycle%40 == regX-1 || cycle%40 == regX || cycle%40 == regX+1 {
+		sb.WriteString("#")
+	} else {
+		sb.WriteString(".")
+	}
+}
+
+func day10Task1() int {
+	input := readInput("assets/input10.txt")
+	strengths := map[int]int{
+		20:  1,
+		60:  1,
+		100: 1,
+		140: 1,
+		180: 1,
+		220: 1,
+	}
+	regX := 1
+	cycle := 0
+	for _, ins := range strings.Split(input, "\n") {
+		cycle++
+		if _, ok := strengths[cycle]; ok {
+			strengths[cycle] = cycle * regX
+		}
+		if ins != "noop" {
+			cycle++
+			if _, ok := strengths[cycle]; ok {
+				strengths[cycle] = cycle * regX
+			}
+			parts := strings.Split(ins, " ")
+			if n, err := strconv.Atoi(parts[1]); err == nil {
+				regX += n
+			}
+		}
+	}
+
+	sum := 0
+	for _, val := range strengths {
+		sum += val
+	}
+
+	return sum
 }
 
 func day9Task2() int {
@@ -160,33 +229,6 @@ func day9CalcTailUpdate(xHead, yHead int, tailPos *Position) (int, int) {
 	default:
 		return 0, 0
 	}
-}
-
-func day9PrintBoard(snake *list.List, positions *map[Position]int) {
-	// Create an empty board
-	board := [15][15]string{}
-
-	// Set the head and tail positions on the board
-	head := snake.Front().Value.(Position)
-	tail := snake.Back().Value.(Position)
-	board[head.x][head.y] = "H"
-	board[tail.x][tail.y] = "T"
-
-	// Print the board to the console
-	for i, row := range board {
-		for j, col := range row {
-			// If the position is empty, print a dot
-			if _, ok := (*positions)[Position{j + 1, i + 1, Tail}]; ok {
-				fmt.Print("#")
-			} else if col == "" {
-				fmt.Print(".")
-			} else {
-				fmt.Print(col)
-			}
-		}
-		fmt.Println()
-	}
-
 }
 
 func day9IsValidPosition(x, y int, tail *Position) bool {
