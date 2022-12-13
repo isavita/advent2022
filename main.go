@@ -23,6 +23,159 @@ func main() {
 	fmt.Printf("\nday8\n answer1: %d\n answer2: %d", day8Task1(), day8Task2())
 	fmt.Printf("\nday9\n answer1: %d\n answer2: %d", day9Task1(), day9Task2())
 	fmt.Printf("\nday10\n answer1: %d\n answer2: %s%s", day10Task1(), "RBPARAGF", day10Task2())
+	fmt.Printf("\nday11\n answer1: %d\n answer2: %d", day11Task1(), day11Task2())
+}
+
+func day11Task2() int64 {
+	input := readInput("assets/input11.txt")
+	monkeysInfo := strings.Split(input, "\n\n")
+	monkeys := make([]Monkey, 0, len(monkeysInfo))
+	limit := 1
+	for _, monkeyInfo := range monkeysInfo {
+		monkey := day11PrepMonkey(monkeyInfo)
+		monkeys = append(monkeys, monkey)
+		limit *= monkey.divisor
+	}
+
+	inspected := make(map[int]int, len(monkeys))
+	for round := 0; round < 10000; round++ {
+		for i := 0; i < len(monkeys); i++ {
+			for _, item := range monkeys[i].items {
+				inspected[monkeys[i].id]++
+				monkeys[i].items = monkeys[i].items[1:]
+				val := day11Eval(monkeys[i].operation, item) % limit
+				if val%monkeys[i].divisor == 0 {
+					j := monkeys[i].trueThrowTo
+					monkeys[j].items = append(monkeys[j].items, val)
+				} else {
+					j := monkeys[i].falseThrowTo
+					monkeys[j].items = append(monkeys[j].items, val)
+				}
+			}
+		}
+	}
+
+	max1, max2 := -1, -1
+	for _, count := range inspected {
+		if max2 < count {
+			max2 = count
+		}
+		if max1 < max2 {
+			max1, max2 = max2, max1
+		}
+	}
+
+	return int64(max1) * int64(max2)
+}
+
+func day11Task1() int {
+	input := readInput("assets/input11.txt")
+	monkeysInfo := strings.Split(input, "\n\n")
+	monkeys := make([]Monkey, 0, len(monkeysInfo))
+	for _, monkeyInfo := range monkeysInfo {
+		monkeys = append(monkeys, day11PrepMonkey(monkeyInfo))
+	}
+
+	inspected := make(map[int]int, len(monkeys))
+	for round := 0; round < 20; round++ {
+		for i := 0; i < len(monkeys); i++ {
+			for _, item := range monkeys[i].items {
+				inspected[monkeys[i].id]++
+				monkeys[i].items = monkeys[i].items[1:]
+				val := day11Eval(monkeys[i].operation, item) / 3
+				if val%monkeys[i].divisor == 0 {
+					j := monkeys[i].trueThrowTo
+					monkeys[j].items = append(monkeys[j].items, val)
+				} else {
+					j := monkeys[i].falseThrowTo
+					monkeys[j].items = append(monkeys[j].items, val)
+				}
+			}
+		}
+	}
+
+	max1, max2 := -1, -1
+	for _, count := range inspected {
+		if max2 < count {
+			max2 = count
+		}
+		if max1 < max2 {
+			max1, max2 = max2, max1
+		}
+	}
+
+	return max1 * max2
+}
+
+func day11Eval(eq string, x int) int {
+	parts := strings.Split(eq, " ")
+	var lhs, rhs int
+	var err error
+	if lhs, err = strconv.Atoi(parts[0]); err != nil {
+		lhs = x
+	}
+
+	if rhs, err = strconv.Atoi(parts[2]); err != nil {
+		rhs = x
+	}
+
+	switch parts[1] {
+	case "*":
+		return lhs * rhs
+	case "+":
+		return lhs + rhs
+	default:
+		log.Fatal(parts[1])
+	}
+
+	return 0
+}
+
+type Monkey struct {
+	id           int
+	items        []int
+	operation    string
+	divisor      int
+	trueThrowTo  int
+	falseThrowTo int
+}
+
+func day11PrepMonkey(monkeyInfo string) Monkey {
+	monkey := Monkey{}
+	info := strings.Split(monkeyInfo, "\n")
+
+	num := strings.TrimSuffix(strings.TrimPrefix(info[0], "Monkey "), ":")
+	if id, err := strconv.Atoi(num); err == nil {
+		monkey.id = id
+	}
+
+	startingItems := strings.TrimPrefix(strings.TrimSpace(info[1]), "Starting items: ")
+	items := []int{}
+	for _, item := range strings.Split(startingItems, ", ") {
+		if n, err := strconv.Atoi(item); err == nil {
+			items = append(items, n)
+		}
+	}
+	monkey.items = items
+
+	monkey.operation = strings.TrimPrefix(strings.TrimSpace(info[2]), "Operation: new = ")
+
+	cond := strings.TrimPrefix(strings.TrimSpace(info[3]), "Test: divisible by ")
+	if n, err := strconv.Atoi(cond); err == nil {
+		monkey.divisor = n
+	}
+
+	trueThrowTo := strings.TrimPrefix(strings.TrimSpace(info[4]), "If true: throw to monkey ")
+	if n, err := strconv.Atoi(trueThrowTo); err == nil {
+		monkey.trueThrowTo = n
+	}
+
+	falseThrowTo := strings.TrimPrefix(strings.TrimSpace(info[5]), "If false: throw to monkey ")
+	if n, err := strconv.Atoi(falseThrowTo); err == nil {
+		monkey.falseThrowTo = n
+	}
+
+	return monkey
 }
 
 func day10Task2() string {
