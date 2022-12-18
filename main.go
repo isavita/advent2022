@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"container/heap"
 	"container/list"
 	"fmt"
 	"log"
@@ -24,6 +25,178 @@ func main() {
 	fmt.Printf("\nday9\n answer1: %d\n answer2: %d", day9Task1(), day9Task2())
 	fmt.Printf("\nday10\n answer1: %d\n answer2: %s%s", day10Task1(), "RBPARAGF", day10Task2())
 	fmt.Printf("\nday11\n answer1: %d\n answer2: %d", day11Task1(), day11Task2())
+	fmt.Printf("\nday12\n answer1: %d\n answer2: %d", day12Task1(), day12Task2())
+}
+
+func day12Task2() int {
+	input := readInput("assets/input12.txt")
+	lines := strings.Split(input, "\n")
+	pq := make(PriorityQueue, 0)
+	heightMap := make(map[string]rune)
+	xLen := len(lines)
+	var yLen int
+	starts := []string{}
+	for i, row := range lines {
+		for j, ch := range row {
+			coord := fmt.Sprintf("%d,%d", i, j)
+			if ch == 'S' {
+				yLen = len(row)
+				starts = append(starts, coord)
+				ch = 'a'
+			} else if ch == 'a' {
+				starts = append(starts, coord)
+			}
+			heightMap[coord] = ch
+		}
+	}
+
+	min := math.MaxInt
+	for _, coord := range starts {
+		heightMap[coord] = 'S'
+		heap.Push(&pq, &Item{value: coord, priority: 0, index: 0})
+		pathWeight := day12FindShortestPath(pq, heightMap, xLen, yLen)
+		if min > pathWeight {
+			min = pathWeight
+		}
+		heightMap[coord] = 'a'
+	}
+
+	return min
+}
+
+func day12Task1() int {
+	input := readInput("assets/input12.txt")
+	lines := strings.Split(input, "\n")
+	pq := make(PriorityQueue, 0)
+	heightMap := make(map[string]rune)
+	xLen, yLen := len(lines), len(lines[0])
+	for i, row := range lines {
+		for j, ch := range row {
+			coord := fmt.Sprintf("%d,%d", i, j)
+			if ch == 'S' {
+				heap.Push(&pq, &Item{value: coord, priority: 0, index: 0})
+			}
+			heightMap[coord] = ch
+		}
+	}
+
+	return day12FindShortestPath(pq, heightMap, xLen, yLen)
+}
+
+func day12FindShortestPath(pq PriorityQueue, heightMap map[string]rune, xLen, yLen int) int {
+	visited := make(map[string]bool)
+	for pq.Len() > 0 {
+		front := heap.Pop(&pq).(*Item)
+		coord := front.value.(string)
+		if visited[coord] {
+			continue
+		} else {
+			visited[coord] = true
+		}
+
+		if heightMap[coord] == 'E' {
+			return front.priority
+		}
+
+		for _, neighbor := range day12GetNeighbors(coord, xLen, yLen) {
+			distance := day12Weight(heightMap[coord], heightMap[neighbor])
+			if distance >= -1 {
+				heap.Push(&pq, &Item{value: neighbor, priority: front.priority + 1, index: 0})
+			}
+		}
+
+	}
+
+	return -1
+}
+func day12GetNeighbors(coord string, xLen, yLen int) []string {
+	x, y := day12ParseCoord(coord)
+
+	neighbors := make([]string, 0)
+
+	if x > 0 {
+		neighbors = append(neighbors, fmt.Sprintf("%d,%d", x-1, y))
+	}
+	if x < xLen-1 {
+		neighbors = append(neighbors, fmt.Sprintf("%d,%d", x+1, y))
+	}
+	if y > 0 {
+		neighbors = append(neighbors, fmt.Sprintf("%d,%d", x, y-1))
+	}
+	if y < yLen-1 {
+		neighbors = append(neighbors, fmt.Sprintf("%d,%d", x, y+1))
+	}
+
+	return neighbors
+}
+
+func day12Weight(h1, h2 rune) int {
+	if h1 == 'S' {
+		h1 = 'a'
+	}
+
+	if h2 == 'S' {
+		h2 = 'a'
+	}
+
+	if h1 == 'E' {
+		h1 = 'z'
+	}
+
+	if h2 == 'E' {
+		h2 = 'z'
+	}
+
+	return int(h1 - h2)
+}
+
+func day12ParseCoord(coord string) (int, int) {
+	parts := strings.Split(coord, ",")
+	x, _ := strconv.Atoi(parts[0])
+	y, _ := strconv.Atoi(parts[1])
+	return x, y
+}
+
+type Item struct {
+	value    interface{}
+	priority int
+	index    int
+}
+
+type PriorityQueue []*Item
+
+func (pq PriorityQueue) Len() int { return len(pq) }
+
+func (pq PriorityQueue) Less(i, j int) bool {
+	return pq[i].priority < pq[j].priority
+}
+
+func (pq *PriorityQueue) Push(x interface{}) {
+	n := len(*pq)
+	item := x.(*Item)
+	item.index = n
+	*pq = append(*pq, item)
+}
+
+func (pq *PriorityQueue) Pop() interface{} {
+	old := *pq
+	n := len(old)
+	item := old[n-1]
+	item.index = -1 // for safety
+	*pq = old[0 : n-1]
+	return item
+}
+
+func (pq PriorityQueue) Swap(i, j int) {
+	pq[i], pq[j] = pq[j], pq[i]
+	pq[i].index = i
+	pq[j].index = j
+}
+
+func (pq *PriorityQueue) Update(item *Item, value string, priority int) {
+	item.value = value
+	item.priority = priority
+	heap.Fix(pq, item.index)
 }
 
 func day11Task2() int64 {
