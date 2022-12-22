@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"container/heap"
 	"container/list"
+	"encoding/json"
 	"fmt"
 	"log"
 	"math"
@@ -26,6 +27,72 @@ func main() {
 	fmt.Printf("\nday10\n answer1: %d\n answer2: %s%s", day10Task1(), "RBPARAGF", day10Task2())
 	fmt.Printf("\nday11\n answer1: %d\n answer2: %d", day11Task1(), day11Task2())
 	fmt.Printf("\nday12\n answer1: %d\n answer2: %d", day12Task1(), day12Task2())
+	fmt.Printf("\nday13\n answer1: %d\n answer2: %d", day13Task1(), day13Task2())
+}
+
+func day13Task2() int {
+	input := readInput("assets/input13.txt")
+	lines := strings.Split(input, "\n\n")
+	packages := make([]any, 0, len(lines))
+	for _, doubleLine := range lines {
+		parts := strings.Split(doubleLine, "\n")
+		var p1, p2 any
+		json.Unmarshal([]byte(parts[0]), &p1)
+		json.Unmarshal([]byte(parts[1]), &p2)
+		packages = append(packages, p1, p2)
+	}
+
+	packages = append(packages, []any{[]any{2.0}}, []any{[]any{6.0}})
+	sort.Slice(packages, func(i, j int) bool {
+		return day13Compare(packages[i], packages[j]) < 0
+	})
+
+	decoder := 1
+	for i, pckg := range packages {
+		s := fmt.Sprint(pckg)
+		if s == "[[2]]" || s == "[[6]]" {
+			decoder *= i + 1
+		}
+	}
+
+	return decoder
+}
+
+func day13Task1() int {
+	input := readInput("assets/input13.txt")
+	lines := strings.Split(input, "\n\n")
+	sum := 0
+	for i, doubleLine := range lines {
+		parts := strings.Split(doubleLine, "\n")
+		var p1, p2 any
+		json.Unmarshal([]byte(parts[0]), &p1)
+		json.Unmarshal([]byte(parts[1]), &p2)
+		if day13Compare(p1, p2) <= 0 {
+			sum += i + 1
+		}
+	}
+
+	return sum
+}
+
+func day13Compare(l, r any) int {
+	xs, ok1 := l.([]any)
+	ys, ok2 := r.([]any)
+	switch {
+	case !ok1 && !ok2:
+		return int(l.(float64) - r.(float64))
+	case !ok1:
+		xs = []any{l}
+	case !ok2:
+		ys = []any{r}
+	}
+
+	for i := 0; i < len(xs) && i < len(ys); i++ {
+		if c := day13Compare(xs[i], ys[i]); c != 0 {
+			return c
+		}
+	}
+	return len(xs) - len(ys)
 }
 
 func day12Task2() int {
