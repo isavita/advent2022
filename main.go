@@ -15,22 +15,22 @@ import (
 )
 
 func main() {
-	fmt.Printf("day1\n answer1: %d\n answer2: %d", day1Task1(), day1Task2())
-	fmt.Printf("\nday2\n answer1: %d\n answer2: %d", day2Task1(), day2Task2())
-	fmt.Printf("\nday3\n answer1: %d\n answer2: %d", day3Task1(), day3Task2())
-	fmt.Printf("\nday4\n answer1: %d\n answer2: %d", day4Task1(), day4Task2())
-	fmt.Printf("\nday5\n answer1: %s\n answer2: %s", day5Task1(), day5Task2())
-	fmt.Printf("\nday6\n answer1: %d\n answer2: %d", day6Task1(), day6Task2())
-	fmt.Printf("\nday7\n answer1: %d\n answer2: %d", day7Task1(), day7Task2())
-	fmt.Printf("\nday8\n answer1: %d\n answer2: %d", day8Task1(), day8Task2())
-	fmt.Printf("\nday9\n answer1: %d\n answer2: %d", day9Task1(), day9Task2())
-	fmt.Printf("\nday10\n answer1: %d\n answer2: %s%s", day10Task1(), "RBPARAGF", day10Task2())
-	fmt.Printf("\nday11\n answer1: %d\n answer2: %d", day11Task1(), day11Task2())
-	fmt.Printf("\nday12\n answer1: %d\n answer2: %d", day12Task1(), day12Task2())
-	fmt.Printf("\nday13\n answer1: %d\n answer2: %d", day13Task1(), day13Task2())
+	fmt.Printf("day1\n answer1: %d\n answer2: %d", Day1Task1(), Day1Task2())
+	fmt.Printf("\nday2\n answer1: %d\n answer2: %d", Day2Task1(), Day2Task2())
+	fmt.Printf("\nday3\n answer1: %d\n answer2: %d", Day3Task1(), Day3Task2())
+	fmt.Printf("\nday4\n answer1: %d\n answer2: %d", Day4Task1(), Day4Task2())
+	fmt.Printf("\nday5\n answer1: %s\n answer2: %s", Day5Task1(), Day5Task2())
+	fmt.Printf("\nday6\n answer1: %d\n answer2: %d", Day6Task1(), Day6Task2())
+	fmt.Printf("\nday7\n answer1: %d\n answer2: %d", Day7Task1(), Day7Task2())
+	fmt.Printf("\nday8\n answer1: %d\n answer2: %d", Day8Task1(), Day8Task2())
+	fmt.Printf("\nday9\n answer1: %d\n answer2: %d", Day9Task1(), Day9Task2())
+	fmt.Printf("\nday10\n answer1: %d\n answer2: %s%s", Day10Task1(), "RBPARAGF", Day10Task2())
+	fmt.Printf("\nday11\n answer1: %d\n answer2: %d", Day11Task1(), Day11Task2())
+	fmt.Printf("\nday12\n answer1: %d\n answer2: %d", Day12Task1(), Day12Task2())
+	fmt.Printf("\nday13\n answer1: %d\n answer2: %d", Day13Task1(), Day13Task2())
 }
 
-func day13Task2() int {
+func Day13Task2() int {
 	input := readInput("assets/input13.txt")
 	lines := strings.Split(input, "\n\n")
 	packages := make([]any, 0, len(lines))
@@ -44,7 +44,7 @@ func day13Task2() int {
 
 	packages = append(packages, []any{[]any{2.0}}, []any{[]any{6.0}})
 	sort.Slice(packages, func(i, j int) bool {
-		return day13Compare(packages[i], packages[j]) < 0
+		return Day13Compare(packages[i], packages[j]) < 0
 	})
 
 	decoder := 1
@@ -58,7 +58,7 @@ func day13Task2() int {
 	return decoder
 }
 
-func day13Task1() int {
+func Day13Task1() int {
 	input := readInput("assets/input13.txt")
 	lines := strings.Split(input, "\n\n")
 	sum := 0
@@ -67,7 +67,7 @@ func day13Task1() int {
 		var p1, p2 any
 		json.Unmarshal([]byte(parts[0]), &p1)
 		json.Unmarshal([]byte(parts[1]), &p2)
-		if day13Compare(p1, p2) <= 0 {
+		if Day13Compare(p1, p2) <= 0 {
 			sum += i + 1
 		}
 	}
@@ -75,7 +75,7 @@ func day13Task1() int {
 	return sum
 }
 
-func day13Compare(l, r any) int {
+func Day13Compare(l, r any) int {
 	xs, ok1 := l.([]any)
 	ys, ok2 := r.([]any)
 	switch {
@@ -88,50 +88,33 @@ func day13Compare(l, r any) int {
 	}
 
 	for i := 0; i < len(xs) && i < len(ys); i++ {
-		if c := day13Compare(xs[i], ys[i]); c != 0 {
+		if c := Day13Compare(xs[i], ys[i]); c != 0 {
 			return c
 		}
 	}
 	return len(xs) - len(ys)
 }
 
-func day12Task2() int {
+func Day12Task2() int {
 	input := readInput("assets/input12.txt")
 	lines := strings.Split(input, "\n")
 	pq := make(PriorityQueue, 0)
 	heightMap := make(map[string]rune)
-	xLen := len(lines)
-	var yLen int
-	starts := []string{}
+	xLen, yLen := len(lines), len(lines[0])
 	for i, row := range lines {
 		for j, ch := range row {
 			coord := fmt.Sprintf("%d,%d", i, j)
-			if ch == 'S' {
-				yLen = len(row)
-				starts = append(starts, coord)
-				ch = 'a'
-			} else if ch == 'a' {
-				starts = append(starts, coord)
+			if ch == 'E' {
+				heap.Push(&pq, &Item{value: coord, priority: 0, index: 0})
 			}
 			heightMap[coord] = ch
 		}
 	}
 
-	min := math.MaxInt
-	for _, coord := range starts {
-		heightMap[coord] = 'S'
-		heap.Push(&pq, &Item{value: coord, priority: 0, index: 0})
-		pathWeight := day12FindShortestPath(pq, heightMap, xLen, yLen)
-		if min > pathWeight {
-			min = pathWeight
-		}
-		heightMap[coord] = 'a'
-	}
-
-	return min
+	return Day12FindShortestPath2(pq, heightMap, xLen, yLen)
 }
 
-func day12Task1() int {
+func Day12Task1() int {
 	input := readInput("assets/input12.txt")
 	lines := strings.Split(input, "\n")
 	pq := make(PriorityQueue, 0)
@@ -147,10 +130,37 @@ func day12Task1() int {
 		}
 	}
 
-	return day12FindShortestPath(pq, heightMap, xLen, yLen)
+	return Day12FindShortestPath1(pq, heightMap, xLen, yLen)
 }
 
-func day12FindShortestPath(pq PriorityQueue, heightMap map[string]rune, xLen, yLen int) int {
+func Day12FindShortestPath2(pq PriorityQueue, heightMap map[string]rune, xLen, yLen int) int {
+	visited := make(map[string]bool)
+	for pq.Len() > 0 {
+		front := heap.Pop(&pq).(*Item)
+		coord := front.value.(string)
+		if visited[coord] {
+			continue
+		} else {
+			visited[coord] = true
+		}
+
+		if heightMap[coord] == 'a' {
+			return front.priority
+		}
+
+		for _, neighbor := range Day12GetNeighbors(coord, xLen, yLen) {
+			distance := Day12Weight(heightMap[coord], heightMap[neighbor])
+			if distance >= -1 {
+				heap.Push(&pq, &Item{value: neighbor, priority: front.priority + 1, index: 0})
+			}
+		}
+
+	}
+
+	return -1
+}
+
+func Day12FindShortestPath1(pq PriorityQueue, heightMap map[string]rune, xLen, yLen int) int {
 	visited := make(map[string]bool)
 	for pq.Len() > 0 {
 		front := heap.Pop(&pq).(*Item)
@@ -165,9 +175,9 @@ func day12FindShortestPath(pq PriorityQueue, heightMap map[string]rune, xLen, yL
 			return front.priority
 		}
 
-		for _, neighbor := range day12GetNeighbors(coord, xLen, yLen) {
-			distance := day12Weight(heightMap[coord], heightMap[neighbor])
-			if distance >= -1 {
+		for _, neighbor := range Day12GetNeighbors(coord, xLen, yLen) {
+			distance := Day12Weight(heightMap[coord], heightMap[neighbor])
+			if distance <= 1 {
 				heap.Push(&pq, &Item{value: neighbor, priority: front.priority + 1, index: 0})
 			}
 		}
@@ -176,8 +186,9 @@ func day12FindShortestPath(pq PriorityQueue, heightMap map[string]rune, xLen, yL
 
 	return -1
 }
-func day12GetNeighbors(coord string, xLen, yLen int) []string {
-	x, y := day12ParseCoord(coord)
+
+func Day12GetNeighbors(coord string, xLen, yLen int) []string {
+	x, y := Day12ParseCoord(coord)
 
 	neighbors := make([]string, 0)
 
@@ -197,7 +208,7 @@ func day12GetNeighbors(coord string, xLen, yLen int) []string {
 	return neighbors
 }
 
-func day12Weight(h1, h2 rune) int {
+func Day12Weight(h1, h2 rune) int {
 	if h1 == 'S' {
 		h1 = 'a'
 	}
@@ -214,10 +225,10 @@ func day12Weight(h1, h2 rune) int {
 		h2 = 'z'
 	}
 
-	return int(h1 - h2)
+	return int(h2 - h1)
 }
 
-func day12ParseCoord(coord string) (int, int) {
+func Day12ParseCoord(coord string) (int, int) {
 	parts := strings.Split(coord, ",")
 	x, _ := strconv.Atoi(parts[0])
 	y, _ := strconv.Atoi(parts[1])
@@ -266,13 +277,13 @@ func (pq *PriorityQueue) Update(item *Item, value string, priority int) {
 	heap.Fix(pq, item.index)
 }
 
-func day11Task2() int64 {
+func Day11Task2() int64 {
 	input := readInput("assets/input11.txt")
 	monkeysInfo := strings.Split(input, "\n\n")
 	monkeys := make([]Monkey, 0, len(monkeysInfo))
 	limit := 1
 	for _, monkeyInfo := range monkeysInfo {
-		monkey := day11PrepMonkey(monkeyInfo)
+		monkey := Day11PrepMonkey(monkeyInfo)
 		monkeys = append(monkeys, monkey)
 		limit *= monkey.divisor
 	}
@@ -283,7 +294,7 @@ func day11Task2() int64 {
 			for _, item := range monkeys[i].items {
 				inspected[monkeys[i].id]++
 				monkeys[i].items = monkeys[i].items[1:]
-				val := day11Eval(monkeys[i].operation, item) % limit
+				val := Day11Eval(monkeys[i].operation, item) % limit
 				if val%monkeys[i].divisor == 0 {
 					j := monkeys[i].trueThrowTo
 					monkeys[j].items = append(monkeys[j].items, val)
@@ -308,12 +319,12 @@ func day11Task2() int64 {
 	return int64(max1) * int64(max2)
 }
 
-func day11Task1() int {
+func Day11Task1() int {
 	input := readInput("assets/input11.txt")
 	monkeysInfo := strings.Split(input, "\n\n")
 	monkeys := make([]Monkey, 0, len(monkeysInfo))
 	for _, monkeyInfo := range monkeysInfo {
-		monkeys = append(monkeys, day11PrepMonkey(monkeyInfo))
+		monkeys = append(monkeys, Day11PrepMonkey(monkeyInfo))
 	}
 
 	inspected := make(map[int]int, len(monkeys))
@@ -322,7 +333,7 @@ func day11Task1() int {
 			for _, item := range monkeys[i].items {
 				inspected[monkeys[i].id]++
 				monkeys[i].items = monkeys[i].items[1:]
-				val := day11Eval(monkeys[i].operation, item) / 3
+				val := Day11Eval(monkeys[i].operation, item) / 3
 				if val%monkeys[i].divisor == 0 {
 					j := monkeys[i].trueThrowTo
 					monkeys[j].items = append(monkeys[j].items, val)
@@ -347,7 +358,7 @@ func day11Task1() int {
 	return max1 * max2
 }
 
-func day11Eval(eq string, x int) int {
+func Day11Eval(eq string, x int) int {
 	parts := strings.Split(eq, " ")
 	var lhs, rhs int
 	var err error
@@ -380,7 +391,7 @@ type Monkey struct {
 	falseThrowTo int
 }
 
-func day11PrepMonkey(monkeyInfo string) Monkey {
+func Day11PrepMonkey(monkeyInfo string) Monkey {
 	monkey := Monkey{}
 	info := strings.Split(monkeyInfo, "\n")
 
@@ -418,16 +429,16 @@ func day11PrepMonkey(monkeyInfo string) Monkey {
 	return monkey
 }
 
-func day10Task2() string {
+func Day10Task2() string {
 	input := readInput("assets/input10.txt")
 	regX, cycle := 1, 0
 	var sb strings.Builder
 	for _, ins := range strings.Split(input, "\n") {
-		day10DrawSpriteAndLine(cycle, regX, &sb)
+		Day10DrawSpriteAndLine(cycle, regX, &sb)
 		cycle++
 		if ins != "noop" {
 			parts := strings.Split(ins, " ")
-			day10DrawSpriteAndLine(cycle, regX, &sb)
+			Day10DrawSpriteAndLine(cycle, regX, &sb)
 			cycle++
 			if n, err := strconv.Atoi(parts[1]); err == nil {
 				regX += n
@@ -438,7 +449,7 @@ func day10Task2() string {
 	return sb.String()
 }
 
-func day10DrawSpriteAndLine(cycle, regX int, sb *strings.Builder) {
+func Day10DrawSpriteAndLine(cycle, regX int, sb *strings.Builder) {
 	if cycle%40 == 0 {
 		sb.WriteString("\n")
 	}
@@ -449,7 +460,7 @@ func day10DrawSpriteAndLine(cycle, regX int, sb *strings.Builder) {
 	}
 }
 
-func day10Task1() int {
+func Day10Task1() int {
 	input := readInput("assets/input10.txt")
 	strengths := map[int]int{
 		20:  1,
@@ -486,7 +497,7 @@ func day10Task1() int {
 	return sum
 }
 
-func day9Task2() int {
+func Day9Task2() int {
 	input := readInput("assets/input9.txt")
 
 	positions := make(map[Position]int)
@@ -504,14 +515,14 @@ func day9Task2() int {
 	positions[Position{x: 5, y: 5, segmentType: 9}] = 1
 
 	for _, line := range strings.Split(input, "\n") {
-		direction := day9GetDirection(line)
+		direction := Day9GetDirection(line)
 		for ; direction.steps > 0; direction.steps -= 1 {
 			headSegment := snake.Front()
 			snake.Remove(headSegment)
 			headPos := headSegment.Value.(Position)
 			newX := headPos.x + direction.x
 			newY := headPos.y + direction.y
-			newTail := day9UpdateTail(newX, newY, snake, &positions)
+			newTail := Day9UpdateTail(newX, newY, snake, &positions)
 			snake = list.New()
 			snake.PushFrontList(&newTail)
 			snake.PushFront(Position{x: newX, y: newY, segmentType: Head})
@@ -521,18 +532,18 @@ func day9Task2() int {
 	return len(positions)
 }
 
-func day9UpdateTail(newX, newY int, snake *list.List, positions *map[Position]int) list.List {
+func Day9UpdateTail(newX, newY int, snake *list.List, positions *map[Position]int) list.List {
 	newTail := list.New()
 	for item := snake.Front(); item != nil; item = item.Next() {
 		tailPos := Position{item.Value.(Position).x, item.Value.(Position).y, item.Value.(Position).segmentType}
-		if day9IsValidPosition(newX, newY, &tailPos) {
+		if Day9IsValidPosition(newX, newY, &tailPos) {
 			newX, newY = tailPos.x, tailPos.y
 			newTail.PushBack(tailPos)
 			if tailPos.segmentType == 9 {
 				(*positions)[Position{x: tailPos.x, y: tailPos.y, segmentType: tailPos.segmentType}] += 1
 			}
 		} else {
-			deltX, deltY := day9CalcTailUpdate(newX, newY, &tailPos)
+			deltX, deltY := Day9CalcTailUpdate(newX, newY, &tailPos)
 			newXTail := tailPos.x + deltX
 			newYTail := tailPos.y + deltY
 			newX, newY = newXTail, newYTail
@@ -545,7 +556,7 @@ func day9UpdateTail(newX, newY int, snake *list.List, positions *map[Position]in
 	return *newTail
 }
 
-func day9Task1() int {
+func Day9Task1() int {
 	input := readInput("assets/input9.txt")
 
 	positions := make(map[Position]int)
@@ -555,7 +566,7 @@ func day9Task1() int {
 	positions[Position{x: 5, y: 5, segmentType: Tail}] = 1
 
 	for _, line := range strings.Split(input, "\n") {
-		direction := day9GetDirection(line)
+		direction := Day9GetDirection(line)
 		for ; direction.steps > 0; direction.steps -= 1 {
 			headSegment := snake.Front()
 			snake.Remove(headSegment)
@@ -566,11 +577,11 @@ func day9Task1() int {
 			tailSegment := snake.Back()
 			snake.Remove(tailSegment)
 			tailPos := tailSegment.Value.(Position)
-			if day9IsValidPosition(newX, newY, &tailPos) {
+			if Day9IsValidPosition(newX, newY, &tailPos) {
 				snake.PushBack(tailPos)
 				positions[Position{x: tailPos.x, y: tailPos.y, segmentType: Tail}] += 1
 			} else {
-				deltX, deltY := day9CalcTailUpdate(newX, newY, &tailPos)
+				deltX, deltY := Day9CalcTailUpdate(newX, newY, &tailPos)
 				newXTail := tailPos.x + deltX
 				newYTail := tailPos.y + deltY
 				snake.PushBack(Position{x: newXTail, y: newYTail, segmentType: Tail})
@@ -599,7 +610,7 @@ type Direction struct {
 	steps int
 }
 
-func day9CalcTailUpdate(xHead, yHead int, tailPos *Position) (int, int) {
+func Day9CalcTailUpdate(xHead, yHead int, tailPos *Position) (int, int) {
 	diffX, diffY := xHead-tailPos.x, yHead-tailPos.y
 
 	switch {
@@ -624,7 +635,7 @@ func day9CalcTailUpdate(xHead, yHead int, tailPos *Position) (int, int) {
 	}
 }
 
-func day9IsValidPosition(x, y int, tail *Position) bool {
+func Day9IsValidPosition(x, y int, tail *Position) bool {
 	maxDistance := 1
 	if abs(x-tail.x) > maxDistance || abs(y-tail.y) > maxDistance {
 		return false
@@ -637,7 +648,7 @@ func abs(n int) int {
 	return int(math.Abs(float64(n)))
 }
 
-func day9GetDirection(line string) Direction {
+func Day9GetDirection(line string) Direction {
 	parts := strings.Split(line, " ")
 	direction := parts[0]
 	distance, err := strconv.Atoi(parts[1])
@@ -659,9 +670,9 @@ func day9GetDirection(line string) Direction {
 	}
 }
 
-func day8Task2() int {
+func Day8Task2() int {
 	input := readInput("assets/input8.txt")
-	trees := day8PrepTrees(input)
+	trees := Day8PrepTrees(input)
 
 	max := math.MinInt
 	for i, row := range trees {
@@ -717,16 +728,16 @@ func treeScore(trees *[][]int, row, col int) int {
 	return score
 }
 
-func day8Task1() int {
+func Day8Task1() int {
 	input := readInput("assets/input8.txt")
-	trees := day8PrepTrees(input)
+	trees := Day8PrepTrees(input)
 	rowLimit := len(trees) - 1
 	colLimit := len(trees[0]) - 1
 
 	count := 0
 	for i := 1; i < rowLimit; i++ {
 		for j := 1; j < colLimit; j++ {
-			if day8IsVisible(&trees, i, j) {
+			if Day8IsVisible(&trees, i, j) {
 				count++
 			}
 		}
@@ -736,7 +747,7 @@ func day8Task1() int {
 	return frameTrees + count
 }
 
-func day8PrepTrees(input string) [][]int {
+func Day8PrepTrees(input string) [][]int {
 	rows := strings.Split(input, "\n")
 	trees := make([][]int, len(rows))
 	for i, row := range rows {
@@ -749,7 +760,7 @@ func day8PrepTrees(input string) [][]int {
 	}
 	return trees
 }
-func day8IsVisible(rows *[][]int, row, col int) bool {
+func Day8IsVisible(rows *[][]int, row, col int) bool {
 	rowLen := len(*rows)
 	colLen := len((*rows)[0])
 
@@ -790,9 +801,9 @@ func day8IsVisible(rows *[][]int, row, col int) bool {
 	return i == -1
 }
 
-func day7Task2() int {
+func Day7Task2() int {
 	input := readInput("assets/input7.txt")
-	dirs := day7GetDirsInfo(input)
+	dirs := Day7GetDirsInfo(input)
 
 	var rootIndex int
 	for i, dir := range dirs {
@@ -815,9 +826,9 @@ func day7Task2() int {
 	return minSize
 }
 
-func day7Task1() int {
+func Day7Task1() int {
 	input := readInput("assets/input7.txt")
-	dirs := day7GetDirsInfo(input)
+	dirs := Day7GetDirsInfo(input)
 
 	sum := 0
 	for _, dir := range dirs {
@@ -834,7 +845,7 @@ type Dir struct {
 	Size int
 }
 
-func day7GetDirsInfo(input string) []Dir {
+func Day7GetDirsInfo(input string) []Dir {
 	currDir := ""
 	dirSizes := map[string]int{}
 	for _, line := range strings.Split(input, "\n") {
@@ -909,17 +920,17 @@ func day7GetDirsInfo(input string) []Dir {
 	return dirsSorted
 }
 
-func day6Task2() int {
+func Day6Task2() int {
 	input := readInput("assets/input6.txt")
-	return day6FindPosNUniqChars(input, 14)
+	return Day6FindPosNUniqChars(input, 14)
 }
 
-func day6Task1() int {
+func Day6Task1() int {
 	input := readInput("assets/input6.txt")
-	return day6FindPosNUniqChars(input, 4)
+	return Day6FindPosNUniqChars(input, 4)
 }
 
-func day6FindPosNUniqChars(input string, n int) int {
+func Day6FindPosNUniqChars(input string, n int) int {
 	seenChars := make(map[rune]bool, 0)
 	count := 0
 	for i := 0; i < len(input); i++ {
@@ -938,7 +949,7 @@ func day6FindPosNUniqChars(input string, n int) int {
 	return -1
 }
 
-func day5Task2() string {
+func Day5Task2() string {
 	input := readInputWithSpace("assets/input5.txt")
 	inputs := strings.Split(input, "\n\n")
 	stacks := map[int][]string{}
@@ -968,7 +979,7 @@ func day5Task2() string {
 
 	inputs[1] = strings.TrimSpace(inputs[1])
 	for _, line := range strings.Split(inputs[1], "\n") {
-		count, from, to := day5MoveInfo(line)
+		count, from, to := Day5MoveInfo(line)
 		if items, ok := stacks[from]; ok {
 			if count > 0 && len(items) > 0 {
 				stacks[to] = append(stacks[to], items[len(items)-count:]...)
@@ -988,7 +999,7 @@ func day5Task2() string {
 	return code
 }
 
-func day5Task1() string {
+func Day5Task1() string {
 	input := readInputWithSpace("assets/input5.txt")
 	inputs := strings.Split(input, "\n\n")
 	stacks := map[int][]string{}
@@ -1018,7 +1029,7 @@ func day5Task1() string {
 
 	inputs[1] = strings.TrimSpace(inputs[1])
 	for _, line := range strings.Split(inputs[1], "\n") {
-		count, from, to := day5MoveInfo(line)
+		count, from, to := Day5MoveInfo(line)
 		if items, ok := stacks[from]; ok {
 			for count > 0 && len(items) > 0 {
 				count--
@@ -1039,7 +1050,7 @@ func day5Task1() string {
 	return code
 }
 
-func day5MoveInfo(line string) (count int, from int, to int) {
+func Day5MoveInfo(line string) (count int, from int, to int) {
 	var err error
 	lin := strings.TrimLeft(line, "move ")
 
@@ -1057,14 +1068,14 @@ func day5MoveInfo(line string) (count int, from int, to int) {
 	return
 }
 
-func day4Task2() int {
+func Day4Task2() int {
 	input := readInput("assets/input4.txt")
 	containCount := 0
 	for _, line := range strings.Split(input, "\n") {
 		sects := strings.Split(line, ",")
-		r1 := day4NewRange(sects[0])
-		r2 := day4NewRange(sects[1])
-		if day4ContainsOverlap(r1, r2) || day4ContainsOverlap(r2, r1) {
+		r1 := Day4NewRange(sects[0])
+		r2 := Day4NewRange(sects[1])
+		if Day4ContainsOverlap(r1, r2) || Day4ContainsOverlap(r2, r1) {
 			containCount++
 		}
 	}
@@ -1072,14 +1083,14 @@ func day4Task2() int {
 	return containCount
 }
 
-func day4Task1() int {
+func Day4Task1() int {
 	input := readInput("assets/input4.txt")
 	containCount := 0
 	for _, line := range strings.Split(input, "\n") {
 		sects := strings.Split(line, ",")
-		r1 := day4NewRange(sects[0])
-		r2 := day4NewRange(sects[1])
-		if day4ContainsFull(r1, r2) || day4ContainsFull(r2, r1) {
+		r1 := Day4NewRange(sects[0])
+		r2 := Day4NewRange(sects[1])
+		if Day4ContainsFull(r1, r2) || Day4ContainsFull(r2, r1) {
 			containCount++
 		}
 	}
@@ -1087,7 +1098,7 @@ func day4Task1() int {
 	return containCount
 }
 
-func day4NewRange(section string) *Range {
+func Day4NewRange(section string) *Range {
 	rangeStr := strings.Split(section, "-")
 	if min, err := strconv.Atoi(rangeStr[0]); err == nil {
 		if max, err := strconv.Atoi(rangeStr[1]); err == nil {
@@ -1097,15 +1108,15 @@ func day4NewRange(section string) *Range {
 	return nil
 }
 
-func day4ContainsFull(r1 *Range, r2 *Range) bool {
+func Day4ContainsFull(r1 *Range, r2 *Range) bool {
 	return r1.Min <= r2.Min && r2.Max <= r1.Max
 }
 
-func day4ContainsOverlap(r1 *Range, r2 *Range) bool {
+func Day4ContainsOverlap(r1 *Range, r2 *Range) bool {
 	return r1.Min <= r2.Min && r2.Min <= r1.Max || r1.Min <= r2.Max && r2.Max <= r1.Max
 }
 
-func day3Task2() int {
+func Day3Task2() int {
 	input := readInput("assets/input3.txt")
 	prioritySum := 0
 	chars := []rune{}
@@ -1124,14 +1135,14 @@ func day3Task2() int {
 		chars = matchChars
 
 		if len(chars) == 1 {
-			prioritySum += day3CalcPriority(chars[0])
+			prioritySum += Day3CalcPriority(chars[0])
 		}
 	}
 
 	return prioritySum
 }
 
-func day3Task1() int {
+func Day3Task1() int {
 	input := readInput("assets/input3.txt")
 	prioritySum := 0
 	for _, line := range strings.Split(input, "\n") {
@@ -1140,7 +1151,7 @@ func day3Task1() int {
 		for i := 0; i < compLen; i++ {
 			for j := compLen; j < len(line); j++ {
 				if line[i] == line[j] {
-					prioritySum += day3CalcPriority(rune(line[i]))
+					prioritySum += Day3CalcPriority(rune(line[i]))
 					break BREAK
 				}
 			}
@@ -1152,7 +1163,7 @@ func day3Task1() int {
 	return prioritySum
 }
 
-func day3CalcPriority(item rune) int {
+func Day3CalcPriority(item rune) int {
 	if item >= 97 { // a - 97, b - 98, ...
 		return int(item) - 96
 	} else { // A - 65, B - 66, ...
@@ -1160,7 +1171,7 @@ func day3CalcPriority(item rune) int {
 	}
 }
 
-func day2Task2() int {
+func Day2Task2() int {
 	input := readInput("assets/input2.txt")
 	score := 0
 	for _, line := range strings.Split(input, "\n") {
@@ -1169,13 +1180,13 @@ func day2Task2() int {
 		strategy := strings.Split(line, " ")
 		outcome := strategy[1]
 		opponent := strategy[0]
-		score += day2CalcExpectScore(outcome, opponent)
+		score += Day2CalcExpectScore(outcome, opponent)
 	}
 
 	return score
 }
 
-func day2CalcExpectScore(outcome, opponent string) int {
+func Day2CalcExpectScore(outcome, opponent string) int {
 	var player string
 	if outcome == "Z" { // Player wins
 		if opponent == "A" {
@@ -1196,10 +1207,10 @@ func day2CalcExpectScore(outcome, opponent string) int {
 	} else { // Draw
 		player = opponent
 	}
-	return day2RoundScore(player, opponent) + day2PlayerScore(player)
+	return Day2RoundScore(player, opponent) + Day2PlayerScore(player)
 }
 
-func day2Task1() int {
+func Day2Task1() int {
 	input := readInput("assets/input2.txt")
 	score := 0
 	for _, line := range strings.Split(input, "\n") {
@@ -1215,13 +1226,13 @@ func day2Task1() int {
 			player = "C"
 		}
 		opponent := strategy[0]
-		score += day2RoundScore(player, opponent) + day2PlayerScore(player)
+		score += Day2RoundScore(player, opponent) + Day2PlayerScore(player)
 	}
 
 	return score
 }
 
-func day2PlayerScore(player string) int {
+func Day2PlayerScore(player string) int {
 	if player == "C" {
 		return 3
 	} else if player == "B" {
@@ -1231,7 +1242,7 @@ func day2PlayerScore(player string) int {
 	}
 }
 
-func day2RoundScore(p1, p2 string) int {
+func Day2RoundScore(p1, p2 string) int {
 	if (p1 == "A" && p2 == "C") || (p1 == "B" && p2 == "A") || (p1 == "C" && p2 == "B") {
 		return 6
 	} else if (p1 == "C" && p2 == "A") || (p1 == "A" && p2 == "B") || (p1 == "B" && p2 == "C") {
@@ -1241,7 +1252,7 @@ func day2RoundScore(p1, p2 string) int {
 	}
 }
 
-func day1Task2() int64 {
+func Day1Task2() int64 {
 	input := readInput("assets/input1.txt")
 	calories := []int64{}
 
@@ -1280,7 +1291,7 @@ func day1Task2() int64 {
 	return sum
 }
 
-func day1Task1() int64 {
+func Day1Task1() int64 {
 	input := readInput("assets/input1.txt")
 	calories := make([]int64, 0)
 
