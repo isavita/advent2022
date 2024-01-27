@@ -49,7 +49,10 @@ func min(a, b int) int {
 }
 
 func max(a, b int) int {
-	return -min(-a, -b)
+	if a > b {
+		return a
+	}
+	return b
 }
 
 func fill(grid map[image.Point]struct{}) int {
