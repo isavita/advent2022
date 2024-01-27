@@ -22,24 +22,29 @@ func main() {
 		s.dist = manhattan(s.pos, s.beacon)
 		sensors = append(sensors, s)
 	}
-	fmt.Println(impossible(sensors, 2000000))
+	fmt.Println(distress(sensors, 4000000))
 }
 
-func impossible(sensors []sensor, y int) int {
-	pts := setOf([]int{})
-	for _, s := range sensors {
-		dist := s.dist - abs(s.pos.Y-y)
-		for x := 0; x <= dist; x++ {
-			pts[s.pos.X+x] = struct{}{}
-			pts[s.pos.X-x] = struct{}{}
+func distress(sensors []sensor, maxcoord int) int {
+	for x := 0; x <= maxcoord; x++ {
+		for y := 0; y <= maxcoord; y++ {
+			p := image.Pt(x, y)
+			detected := false
+			skip := 0
+			for _, s := range sensors {
+				if manhattan(s.pos, p) <= s.dist {
+					detected = true
+					dist := s.dist - abs(s.pos.X-x)
+					skip = max(skip, dist+s.pos.Y-y)
+				}
+			}
+			if !detected {
+				return x*4000000 + y
+			}
+			y += skip
 		}
 	}
-	for _, s := range sensors {
-		if s.beacon.Y == y {
-			delete(pts, s.beacon.X)
-		}
-	}
-	return len(pts)
+	return -1
 }
 
 func readAll(path string) string {
@@ -59,14 +64,4 @@ func abs(n int) int {
 
 func manhattan(p, q image.Point) int {
 	return abs(p.X-q.X) + abs(p.Y-q.Y)
-}
-
-type Set[T comparable] map[T]struct{}
-
-func setOf[T comparable](a []T) Set[T] {
-	s := make(Set[T])
-	for _, c := range a {
-		s[c] = struct{}{}
-	}
-	return s
 }
