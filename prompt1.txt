@@ -1,77 +1,98 @@
 Write me golang program that solves this task. The program should read its input from file input.txt. It should be concise and efficient. Skip comments.
 ```
---- Day 7: No Space Left On Device ---
-You can hear birds chirping and raindrops hitting leaves as the expedition proceeds. Occasionally, you can even hear much louder sounds in the distance; how big do the animals get out here, anyway?
+--- Day 15: Beacon Exclusion Zone ---
+You feel the ground rumble again as the distress signal leads you to a large network of subterranean tunnels. You don't have time to search them all, but you don't need to: your pack contains a set of deployable sensors that you imagine were originally built to locate lost Elves.
 
-The device the Elves gave you has problems with more than just its communication system. You try to run a system update:
+The sensors aren't very powerful, but that's okay; your handheld device indicates that you're close enough to the source of the distress signal to use them. You pull the emergency sensor system out of your pack, hit the big button on top, and the sensors zoom off down the tunnels.
 
-$ system-update --please --pretty-please-with-sugar-on-top
-Error: No space left on device
-Perhaps you can delete some files to make space for the update?
+Once a sensor finds a spot it thinks will give it a good reading, it attaches itself to a hard surface and begins monitoring for the nearest signal source beacon. Sensors and beacons always exist at integer coordinates. Each sensor knows its own position and can determine the position of a beacon precisely; however, sensors can only lock on to the one beacon closest to the sensor as measured by the Manhattan distance. (There is never a tie where two beacons are the same distance to a sensor.)
 
-You browse around the filesystem to assess the situation and save the resulting terminal output (your puzzle input). For example:
+It doesn't take long for the sensors to report back their positions and closest beacons (your puzzle input). For example:
 
-$ cd /
-$ ls
-dir a
-14848514 b.txt
-8504156 c.dat
-dir d
-$ cd a
-$ ls
-dir e
-29116 f
-2557 g
-62596 h.lst
-$ cd e
-$ ls
-584 i
-$ cd ..
-$ cd ..
-$ cd d
-$ ls
-4060174 j
-8033020 d.log
-5626152 d.ext
-7214296 k
-The filesystem consists of a tree of files (plain data) and directories (which can contain other directories or files). The outermost directory is called /. You can navigate around the filesystem, moving into or out of directories and listing the contents of the directory you're currently in.
+Sensor at x=2, y=18: closest beacon is at x=-2, y=15
+Sensor at x=9, y=16: closest beacon is at x=10, y=16
+Sensor at x=13, y=2: closest beacon is at x=15, y=3
+Sensor at x=12, y=14: closest beacon is at x=10, y=16
+Sensor at x=10, y=20: closest beacon is at x=10, y=16
+Sensor at x=14, y=17: closest beacon is at x=10, y=16
+Sensor at x=8, y=7: closest beacon is at x=2, y=10
+Sensor at x=2, y=0: closest beacon is at x=2, y=10
+Sensor at x=0, y=11: closest beacon is at x=2, y=10
+Sensor at x=20, y=14: closest beacon is at x=25, y=17
+Sensor at x=17, y=20: closest beacon is at x=21, y=22
+Sensor at x=16, y=7: closest beacon is at x=15, y=3
+Sensor at x=14, y=3: closest beacon is at x=15, y=3
+Sensor at x=20, y=1: closest beacon is at x=15, y=3
+So, consider the sensor at 2,18; the closest beacon to it is at -2,15. For the sensor at 9,16, the closest beacon to it is at 10,16.
 
-Within the terminal output, lines that begin with $ are commands you executed, very much like some modern computers:
+Drawing sensors as S and beacons as B, the above arrangement of sensors and beacons looks like this:
 
-cd means change directory. This changes which directory is the current directory, but the specific result depends on the argument:
-cd x moves in one level: it looks in the current directory for the directory named x and makes it the current directory.
-cd .. moves out one level: it finds the directory that contains the current directory, then makes that directory the current directory.
-cd / switches the current directory to the outermost directory, /.
-ls means list. It prints out all of the files and directories immediately contained by the current directory:
-123 abc means that the current directory contains a file named abc with size 123.
-dir xyz means that the current directory contains a directory named xyz.
-Given the commands and output in the example above, you can determine that the filesystem looks visually like this:
+               1    1    2    2
+     0    5    0    5    0    5
+ 0 ....S.......................
+ 1 ......................S.....
+ 2 ...............S............
+ 3 ................SB..........
+ 4 ............................
+ 5 ............................
+ 6 ............................
+ 7 ..........S.......S.........
+ 8 ............................
+ 9 ............................
+10 ....B.......................
+11 ..S.........................
+12 ............................
+13 ............................
+14 ..............S.......S.....
+15 B...........................
+16 ...........SB...............
+17 ................S..........B
+18 ....S.......................
+19 ............................
+20 ............S......S........
+21 ............................
+22 .......................B....
+This isn't necessarily a comprehensive map of all beacons in the area, though. Because each sensor only identifies its closest beacon, if a sensor detects a beacon, you know there are no other beacons that close or closer to that sensor. There could still be beacons that just happen to not be the closest beacon to any sensor. Consider the sensor at 8,7:
 
-- / (dir)
-  - a (dir)
-    - e (dir)
-      - i (file, size=584)
-    - f (file, size=29116)
-    - g (file, size=2557)
-    - h.lst (file, size=62596)
-  - b.txt (file, size=14848514)
-  - c.dat (file, size=8504156)
-  - d (dir)
-    - j (file, size=4060174)
-    - d.log (file, size=8033020)
-    - d.ext (file, size=5626152)
-    - k (file, size=7214296)
-Here, there are four directories: / (the outermost directory), a and d (which are in /), and e (which is in a). These directories also contain files of various sizes.
+               1    1    2    2
+     0    5    0    5    0    5
+-2 ..........#.................
+-1 .........###................
+ 0 ....S...#####...............
+ 1 .......#######........S.....
+ 2 ......#########S............
+ 3 .....###########SB..........
+ 4 ....#############...........
+ 5 ...###############..........
+ 6 ..#################.........
+ 7 .#########S#######S#........
+ 8 ..#################.........
+ 9 ...###############..........
+10 ....B############...........
+11 ..S..###########............
+12 ......#########.............
+13 .......#######..............
+14 ........#####.S.......S.....
+15 B........###................
+16 ..........#SB...............
+17 ................S..........B
+18 ....S.......................
+19 ............................
+20 ............S......S........
+21 ............................
+22 .......................B....
+This sensor's closest beacon is at 2,10, and so you know there are no beacons that close or closer (in any positions marked #).
 
-Since the disk is full, your first step should probably be to find directories that are good candidates for deletion. To do this, you need to determine the total size of each directory. The total size of a directory is the sum of the sizes of the files it contains, directly or indirectly. (Directories themselves do not count as having any intrinsic size.)
+None of the detected beacons seem to be producing the distress signal, so you'll need to work out where the distress beacon is by working out where it isn't. For now, keep things simple by counting the positions where a beacon cannot possibly be along just a single row.
 
-The total sizes of the directories above can be found as follows:
+So, suppose you have an arrangement of beacons and sensors like in the example above and, just in the row where y=10, you'd like to count the number of positions a beacon cannot possibly exist. The coverage from all sensors near that row looks like this:
 
-The total size of directory e is 584 because it contains a single file i of size 584 and no other directories.
-The directory a has total size 94853 because it contains files f (size 29116), g (size 2557), and h.lst (size 62596), plus file i indirectly (a contains e which contains i).
-Directory d has total size 24933642.
-As the outermost directory, / contains every file. Its total size is 48381165, the sum of the size of every file.
-To begin, find all of the directories with a total size of at most 100000, then calculate the sum of their total sizes. In the example above, these directories are a and e; the sum of their total sizes is 95437 (94853 + 584). (As in this example, this process can count files more than once!)
+                 1    1    2    2
+       0    5    0    5    0    5
+ 9 ...#########################...
+10 ..####B######################..
+11 .###S#############.###########.
+In this example, in the row where y=10, there are 26 positions where a beacon cannot be present.
 
-Find all of the directories with a total size of at most 100000. What is the sum of the total sizes of those directories?
+Consult the report from the sensors you just deployed. In the row where y=2000000, how many positions cannot contain a beacon?
 ```
